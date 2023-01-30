@@ -9,6 +9,10 @@ import (
 type Widget struct {
 	view.MultiSourceWidget
 	view.ScrollableWidget
+	
+	tviewApp *tview.Application
+	redrawChan chan bool
+	pages *tview.Pages
 	settings *Settings
 
 	client        *PivotalClient
@@ -22,12 +26,16 @@ func NewWidget(tviewApp *tview.Application, redrawChan chan bool, pages *tview.P
 	widget := Widget{
 		MultiSourceWidget: view.NewMultiSourceWidget(settings.Common, "customQuery", "customQueries"),
 		ScrollableWidget:  view.NewScrollableWidget(tviewApp, redrawChan, pages, settings.Common),
+		
+		pages: pages,
+		tviewApp: tviewApp,
+		redrawChan: redrawChan,
 
 		settings:      settings,
 		client:        NewPivotalClient(settings.apiToken, settings.projectId),
 		projectClient: make(map[string]*PivotalClient),
 	}
-
+	
 	widget.loadSources()
 
 	// Add the client to projectClient list
@@ -99,3 +107,26 @@ func (widget *Widget) Open() {
 func (widget *Widget) OpenPulls() {
 	widget.CurrentSource().OpenPulls()
 }
+
+// ShowStory displays the a dialog  module for a PivotalStory 
+func (widget *Widget) ShowStory() {
+	if widget.pages == nil {
+		return
+	}
+
+	closeFunc := func() {
+		widget.pages.RemovePage("story")
+		widget.tviewApp.SetFocus(widget.View)
+	}
+	
+	text := widget.CurrentSource().storyContent()
+	modal := view.NewBillboardModal(text, closeFunc)
+	
+
+	widget.pages.AddPage("story", modal, false, true)
+	widget.tviewApp.SetFocus(modal)
+
+	// Tell the app to force redraw the screen
+	widget.RedrawChan <- true
+}
+

@@ -65,6 +65,29 @@ func (source *PivotalSource) OpenPulls() {
 	}
 }
 
+func (source *PivotalSource) storyContent() string {
+	var str string
+	sel := source.widget.GetSelected()
+	if sel < 0 && sel >= source.getItemCount() {
+		return " No Story Selected"
+	}
+
+	story := &source.stories[sel]
+
+	str += "I'm going to \n\t\t- Add Story Information here\n\t\t- Add Pull Requests\n\t\t- Add Branch Information\n\t\t- Add ability to selectivley choose what to interact with"
+	str += "\n\n"
+	
+	if len(story.PullRequests) > 0 {
+		str += fmt.Sprintf("\n [%s]My Pull Requests[white]\n", source.widget.settings.Colors.Subheading)
+		for _, pr := range story.PullRequests {
+			str += fmt.Sprintf("\t%d - %s/%s", pr.Number, pr.Owner, pr.Repo)
+		}
+	}
+
+	str += fmt.Sprintf("\n [%s]Stats[white]\n", source.widget.settings.Colors.Subheading)
+
+	return str
+}
 /* -------------------- Counts -------------------- */
 
 func (source *PivotalSource) getItemCount() int {

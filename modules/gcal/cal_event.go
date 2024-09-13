@@ -3,6 +3,7 @@ package gcal
 import (
 	"fmt"
 	"time"
+	"net/url"
 
 	"github.com/wtfutil/wtf/utils"
 	"google.golang.org/api/calendar/v3"
@@ -16,11 +17,46 @@ func NewCalEvent(event *calendar.Event) *CalEvent {
 	calEvent := CalEvent{
 		event: event,
 	}
-
 	return &calEvent
 }
 
+func (calEvent *CalEvent) ConflictSkip() bool {
+	if calEvent.event.Status == "cancelled" {
+		return true
+	}
+	if calEvent.event.Status == "tentative" {
+		return true
+	}
+	if calEvent.event.EventType == "workingLocation" {
+		return true
+	}
+	if calEvent.AllDay() {
+		return true
+	}
+	return false
+}
+
 /* -------------------- Exported Functions -------------------- */
+
+func (calEvent *CalEvent) MeetingLink() string {
+	if calEvent.event.ConferenceData!= nil {
+		for _, endpoint:= range calEvent.event.ConferenceData.EntryPoints {
+			if endpoint.EntryPointType == "video" {
+				return endpoint.Uri
+			}
+		}
+	}
+	if calEvent.event.HangoutLink!= "" {
+		return calEvent.event.HangoutLink
+	}
+	url, err := url.Parse(calEvent.event.Location)
+	if err == nil {
+		return url.String()
+	}
+	return ""
+}
+
+
 
 func (calEvent *CalEvent) AllDay() bool {
 	return len(calEvent.event.Start.Date) > 0
@@ -29,7 +65,15 @@ func (calEvent *CalEvent) AllDay() bool {
 func (calEvent *CalEvent) ConflictsWith(otherEvents []*CalEvent) bool {
 	hasConflict := false
 
+	if calEvent.ConflictSkip() {
+		return false
+	}
+
 	for _, otherEvent := range otherEvents {
+		if otherEvent.ConflictSkip() {
+			return false
+		}
+
 		if calEvent.event == otherEvent.event {
 			continue
 		}

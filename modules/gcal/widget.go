@@ -2,11 +2,12 @@ package gcal
 
 import (
 	"github.com/rivo/tview"
+	"github.com/wtfutil/wtf/utils"
 	"github.com/wtfutil/wtf/view"
 )
 
 type Widget struct {
-	view.TextWidget
+	view.ScrollableWidget
 
 	calEvents []*CalEvent
 	err       error
@@ -14,13 +15,16 @@ type Widget struct {
 	tviewApp  *tview.Application
 }
 
-func NewWidget(tviewApp *tview.Application, redrawChan chan bool, settings *Settings) *Widget {
+func NewWidget(tviewApp *tview.Application, redrawChan chan bool,pages *tview.Pages, settings *Settings) *Widget {
 	widget := Widget{
-		TextWidget: view.NewTextWidget(tviewApp, redrawChan, nil, settings.Common),
+		ScrollableWidget: view.NewScrollableWidget(tviewApp, redrawChan, pages, settings.Common),
 
 		tviewApp: tviewApp,
 		settings: settings,
 	}
+
+	widget.SetRenderFunction(widget.display)
+	widget.initializeKeyboardControls()
 
 	return &widget
 }
@@ -39,6 +43,16 @@ func (widget *Widget) Refresh() {
 
 	widget.tviewApp.Suspend(widget.authenticate)
 	widget.Refresh()
+}
+
+func (widget *Widget) Open() {
+	widget.GetSelected()
+	calEvent := widget.calEvents[widget.GetSelected()]
+
+	link := calEvent.MeetingLink()
+	if link != "" {
+		utils.OpenFile(link)
+	}
 }
 
 /* -------------------- Unexported Functions -------------------- */

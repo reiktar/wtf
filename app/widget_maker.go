@@ -188,7 +188,7 @@ func MakeWidget(
 		widget = football.NewWidget(tviewApp, redrawChan, pages, settings)
 	case "gcal":
 		settings := gcal.NewSettingsFromYAML(moduleName, moduleConfig, config)
-		widget = gcal.NewWidget(tviewApp, redrawChan, settings)
+		widget = gcal.NewWidget(tviewApp, redrawChan, pages, settings)
 	case "gerrit":
 		settings := gerrit.NewSettingsFromYAML(moduleName, moduleConfig, config)
 		widget = gerrit.NewWidget(tviewApp, redrawChan, pages, settings)

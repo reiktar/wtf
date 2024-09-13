@@ -25,12 +25,14 @@ type Settings struct {
 	colors
 	*cfg.Common
 
+	compact               bool   `help:"Whether or not to display the calendar in compact mode." values:"true or false" optional:"true" default:"true"`
 	conflictIcon          string `help:"The icon displayed beside calendar events that have conflicting times (they intersect or overlap in some way)." values:"Any displayable unicode character." optional:"true"`
 	currentIcon           string `help:"The icon displayed beside the current calendar event." values:"Any displayable unicode character." optional:"true"`
 	displayResponseStatus bool   `help:"Whether or not to display your response status to the calendar event." values:"true or false" optional:"true"`
 	email                 string `help:"The email address associated with your Google account. Necessary for determining 'responseStatus'." values:"A valid email address string."`
 	eventCount            int    `help:"The number of calendar events to display." values:"A positive integer, 0..n." optional:"true"`
 	hourFormat            string `help:"The format of the clock." values:"12 or 24"`
+	meetingLinkIcon       string `help:"The icon displayed beside calendar events that has conferencing links values:"Any displayable unicode character." optional:"true"`
 	multiCalendar         bool   `help:"Whether or not to display your primary calendar or all calendars you have access to." values:"true or false" optional:"true"`
 	secretFile            string `help:"Your Google client secret JSON file." values:"A string representing a file path to the JSON secret file."`
 	showAllDay            bool   `help:"Whether or not to display all-day events" values:"true or false" optional:"true" default:"true"`
@@ -48,6 +50,7 @@ func NewSettingsFromYAML(name string, ymlConfig *config.Config, globalConfig *co
 
 		conflictIcon:          ymlConfig.UString("conflictIcon", "🚨"),
 		currentIcon:           ymlConfig.UString("currentIcon", "🔸"),
+		meetingLinkIcon:       ymlConfig.UString("meetingLinkIcon", "📷"),
 		displayResponseStatus: ymlConfig.UBool("displayResponseStatus", true),
 		email:                 ymlConfig.UString("email", ""),
 		eventCount:            ymlConfig.UInt("eventCount", 10),
@@ -58,6 +61,7 @@ func NewSettingsFromYAML(name string, ymlConfig *config.Config, globalConfig *co
 		showEndTime:           ymlConfig.UBool("showEndTime", false),
 		showDeclined:          ymlConfig.UBool("showDeclined", false),
 		withLocation:          ymlConfig.UBool("withLocation", true),
+		compact:               ymlConfig.UBool("compact", false),
 		timezone:              ymlConfig.UString("timezone", ""),
 		calendarReadLevel:     ymlConfig.UString("calendarReadLevel", "writer"),
 	}

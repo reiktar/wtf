@@ -32,7 +32,7 @@ func (widget *Widget) content() (string, string, bool) {
 		calEvents = widget.removeDeclined(calEvents)
 	}
 
-	for _, calEvent := range calEvents {
+	for idx, calEvent := range calEvents {
 		if calEvent.AllDay() && !widget.settings.showAllDay {
 			continue
 		}
@@ -49,22 +49,43 @@ func (widget *Widget) content() (string, string, bool) {
 		)
 
 		lineOne := fmt.Sprintf(
-			"%s %s %s %s[white]\n",
+			"%s [%s]%s %s[:-] %s[white]",
 			widget.dayDivider(calEvent, prevEvent),
+			widget.RowColor(idx),
 			widget.responseIcon(calEvent),
 			timestamp,
 			eventTitle,
 		)
 
-		str += fmt.Sprintf("%s   %s%s\n",
-			lineOne,
-			widget.location(calEvent),
-			widget.timeUntil(calEvent),
-		)
-
-		if (widget.location(calEvent) != "") || (widget.timeUntil(calEvent) != "") {
-			str += "\n"
+		var line string = lineOne
+		if widget.settings.compact {
+			if widget.timeUntil(calEvent)!= "" {
+				line = fmt.Sprintf(
+					"%s (%s)",
+					line,
+					widget.timeUntil(calEvent),
+				)
+			}
+			if widget.location(calEvent)!= "" {
+				line = fmt.Sprintf("%s\n   %s",
+					line,
+					widget.location(calEvent),
+				)
+			}
+			line += "\n"
+		} else {
+			line = fmt.Sprintf("%s\n   %s%s\n",
+				line,
+				widget.location(calEvent),
+				widget.timeUntil(calEvent),
+			)
+			if (widget.location(calEvent) != "") || (widget.timeUntil(calEvent) != "") {
+				str += "\n"
+			}
 		}
+
+		//str += utils.HighlightableHelper(widget.View, line, idx, len(eventTitle))
+		str += line
 
 		prevEvent = calEvent
 	}
@@ -111,6 +132,14 @@ func (widget *Widget) eventTimeColor() string {
 
 func (widget *Widget) eventSummary(calEvent *CalEvent, conflict bool) string {
 	summary := calEvent.event.Summary
+
+	if calEvent.MeetingLink()!= "" {
+		summary = fmt.Sprintf(
+			"%s %s",
+			widget.settings.meetingLinkIcon,
+			summary,
+		)
+	}
 
 	if calEvent.Now() {
 		summary = fmt.Sprintf(

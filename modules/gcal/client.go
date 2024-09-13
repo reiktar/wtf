@@ -89,7 +89,7 @@ func (widget *Widget) Fetch() ([]*CalEvent, error) {
 	for _, event := range events.Items {
 		calEvents = append(calEvents, NewCalEvent(event))
 	}
-
+	widget.SetItemCount(len(calEvents))
 	return calEvents, err
 }
 
